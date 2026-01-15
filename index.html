@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Life in Weeks — Existential Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="ambient-bg" aria-hidden="true"></div>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <main class="chamber">
+      <header class="top-bar">
+        <h1 class="sr-only">Life in Weeks</h1>
+        <button class="change-date" type="button">Change date</button>
+      </header>
+
+      <section class="grid-shell" aria-live="polite">
+        <div class="week-grid" id="week-grid" aria-label="Life weeks grid"></div>
+      </section>
+
+      <aside class="hud" id="hud" aria-live="polite">
+        <div class="hud-glass">
+          <div class="hud-label">Scan Readout</div>
+          <div class="hud-primary" id="hud-range">—</div>
+          <div class="hud-secondary" id="hud-age">—</div>
+          <div class="hud-meta" id="hud-state">—</div>
+        </div>
+      </aside>
+    </main>
+
+    <div class="overlay" id="overlay" role="dialog" aria-modal="true">
+      <div class="overlay-panel">
+        <div class="overlay-glow"></div>
+        <h2>Life in Weeks</h2>
+        <p class="subtitle">A week-by-week map of a life.</p>
+        <label class="dob-label" for="dob">Date of Birth</label>
+        <input id="dob" name="dob" type="date" max="" />
+        <p class="error" id="dob-error" role="alert" aria-live="assertive"></p>
+        <button id="enter" type="button" disabled>Enter</button>
+        <p class="note">No data is saved.</p>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
