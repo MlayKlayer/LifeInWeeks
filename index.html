@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Life in Weeks — Existential Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="nebula" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="vignette" aria-hidden="true"></div>
+
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true">
+    <div class="overlay-panel">
+      <p class="eyebrow">Existential Dashboard</p>
+      <h1>Life in Weeks</h1>
+      <p class="subtitle">A week-by-week map of a life.</p>
+      <form id="intro-form" class="intro-form">
+        <label class="field">
+          <span>Date of Birth</span>
+          <input type="date" id="dob" required />
+        </label>
+        <p class="error" id="dob-error" aria-live="polite"></p>
+        <button type="submit" id="enter" disabled>Enter</button>
+        <p class="note">No data is saved.</p>
+      </form>
+    </div>
+  </div>
+
+  <div class="app" id="app" aria-hidden="true">
+    <header class="topbar">
+      <a href="#" id="change-date" class="ghost-link">Change date</a>
+    </header>
+    <main class="grid-wrap">
+      <div id="grid" class="grid" role="grid" aria-label="Life weeks grid"></div>
+    </main>
+    <aside class="hud" id="hud" aria-live="polite">
+      <div class="hud-label">Scan Readout</div>
+      <div class="hud-range" id="hud-range">—</div>
+      <div class="hud-age" id="hud-age">Age: —</div>
+      <div class="hud-index" id="hud-index">Week: —</div>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
