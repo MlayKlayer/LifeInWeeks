@@ -143,7 +143,7 @@ function bindEvents() {
 
 function handleDobChange(event) {
   const rawValue = event.target.value.trim();
-  const parsed = parseISODate(rawValue);
+  const parsed = parseDobFlexible(rawValue);
   if (!parsed) {
     state.dob = "";
     selectedWeek = null;
@@ -151,7 +151,7 @@ function handleDobChange(event) {
     renderAll();
     return;
   }
-  state.dob = toISODate(parsed);
+  state.dob = toISODateLocal(parsed);
   dom.dobInput.value = state.dob;
   selectedWeek = getCurrentWeekIndex(parsed);
   saveState();
@@ -471,7 +471,7 @@ function normalizeState(data) {
   const dob = parseISODate(data.dob);
   return {
     version: 1,
-    dob: dob ? toISODate(dob) : "",
+    dob: dob ? toISODateLocal(dob) : "",
     expectancyYears: data.expectancyYears || 90,
     theme: data.theme === "light" ? "light" : "void",
     events: Array.isArray(data.events) ? data.events : [],
@@ -515,6 +515,54 @@ function parseISODate(iso) {
   const year = Number.parseInt(match[1], 10);
   const month = Number.parseInt(match[2], 10);
   const day = Number.parseInt(match[3], 10);
+  return validateYMD(year, month, day);
+}
+
+function parseDobFlexible(value) {
+  if (typeof value !== "string") {
+    return null;
+  }
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  let match = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (match) {
+    const year = Number.parseInt(match[1], 10);
+    const month = Number.parseInt(match[2], 10);
+    const day = Number.parseInt(match[3], 10);
+    return validateYMD(year, month, day);
+  }
+
+  match = trimmed.match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})$/);
+  if (match) {
+    const day = Number.parseInt(match[1], 10);
+    const month = Number.parseInt(match[2], 10);
+    const year = Number.parseInt(match[3], 10);
+    return validateYMD(year, month, day);
+  }
+
+  match = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const first = Number.parseInt(match[1], 10);
+    const second = Number.parseInt(match[2], 10);
+    const year = Number.parseInt(match[3], 10);
+    const monthFirst = validateYMD(year, first, second);
+    const dayFirst = validateYMD(year, second, first);
+    if (first > 12 && second <= 12) {
+      return dayFirst;
+    }
+    if (second > 12 && first <= 12) {
+      return monthFirst;
+    }
+    return monthFirst || dayFirst;
+  }
+
+  return null;
+}
+
+function validateYMD(year, month, day) {
   if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
     return null;
   }
@@ -529,11 +577,15 @@ function parseISODate(iso) {
   return date;
 }
 
-function toISODate(date) {
+function toISODateLocal(date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function toISODate(date) {
+  return toISODateLocal(date);
 }
 
 function startOfDay(date) {
