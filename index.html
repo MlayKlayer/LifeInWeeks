@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Life in Weeks</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app" id="app">
+    <header class="header">
+      <div class="title-block">
+        <h1>Life in Weeks</h1>
+        <p class="subtitle">Visualize life, week by week.</p>
+      </div>
+      <div class="controls">
+        <label class="control">
+          <span>Date of birth</span>
+          <input id="dob-input" type="date" placeholder="YYYY-MM-DD" />
+        </label>
+        <label class="control">
+          <span>Life expectancy (years)</span>
+          <input id="expectancy-input" type="number" min="1" max="120" step="1" />
+        </label>
+        <div class="button-row">
+          <button type="button" id="today-btn">Today</button>
+          <button type="button" id="add-event-btn">Add event</button>
+          <button type="button" id="export-btn">Export</button>
+          <button type="button" id="import-btn">Import</button>
+          <button type="button" id="theme-btn">Theme</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="grid-panel" aria-label="Weeks grid">
+        <div id="grid" class="grid" role="grid" aria-label="Life weeks grid"></div>
+        <div id="grid-empty" class="grid-empty" hidden>
+          <p>Set your date of birth to generate your life grid.</p>
+        </div>
+      </section>
+
+      <aside class="inspector" aria-live="polite">
+        <div class="inspector-header">
+          <h2>Inspector</h2>
+          <p id="inspector-status" class="inspector-status">Select a week</p>
+        </div>
+        <div class="inspector-body" id="inspector-body">
+          <div class="inspector-row">
+            <span>Week</span>
+            <strong id="inspector-week">—</strong>
+          </div>
+          <div class="inspector-row">
+            <span>Date range</span>
+            <strong id="inspector-range">—</strong>
+          </div>
+          <div class="inspector-row">
+            <span>Age</span>
+            <strong id="inspector-age">—</strong>
+          </div>
+          <div class="inspector-row">
+            <span>Status</span>
+            <strong id="inspector-status-text">—</strong>
+          </div>
+          <div class="inspector-row">
+            <span>Events</span>
+            <div id="inspector-events" class="chip-row"></div>
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div class="modal" id="event-modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2>Add event</h2>
+        <button type="button" class="icon-btn" id="close-modal-btn" aria-label="Close">
+          ✕
+        </button>
+      </div>
+      <form id="event-form">
+        <label class="control">
+          <span>Title</span>
+          <input type="text" id="event-title" required />
+        </label>
+        <label class="control">
+          <span>Start date</span>
+          <input type="date" id="event-start" required />
+        </label>
+        <label class="control">
+          <span>End date</span>
+          <input type="date" id="event-end" required />
+        </label>
+        <label class="control">
+          <span>Tag</span>
+          <select id="event-tag">
+            <option value="life">Life</option>
+            <option value="work">Work</option>
+            <option value="family">Family</option>
+            <option value="health">Health</option>
+            <option value="travel">Travel</option>
+            <option value="milestone">Milestone</option>
+          </select>
+        </label>
+        <div class="modal-actions">
+          <button type="submit" class="primary">Save</button>
+          <button type="button" id="cancel-modal-btn">Cancel</button>
+        </div>
+        <p class="modal-error" id="modal-error" role="alert"></p>
+      </form>
+    </div>
+  </div>
+
+  <input type="file" id="import-file" accept="application/json" hidden />
+
+  <script src="app.js"></script>
+</body>
+</html>
