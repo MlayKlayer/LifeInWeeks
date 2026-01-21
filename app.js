@@ -50,23 +50,19 @@ let state = loadState();
 let selectedWeek = null;
 let saveTimer = null;
 
-init();
+document.addEventListener("DOMContentLoaded", init);
 
 function init() {
   dom.expectancyInput.value = state.expectancyYears;
   dom.dobInput.value = state.dob;
   applyTheme(state.theme);
   bindEvents();
-  render();
+  renderAll();
 }
 
 function bindEvents() {
-  dom.dobInput.addEventListener("change", (event) => {
-    state.dob = event.target.value;
-    selectedWeek = null;
-    persistState();
-    render();
-  });
+  dom.dobInput.addEventListener("change", handleDobChange);
+  dom.dobInput.addEventListener("input", handleDobChange);
 
   dom.expectancyInput.addEventListener("change", (event) => {
     const value = Number.parseInt(event.target.value, 10);
@@ -74,14 +70,14 @@ function bindEvents() {
       return;
     }
     state.expectancyYears = Math.min(value, 120);
-    persistState();
-    render();
+    saveState();
+    renderAll();
   });
 
   dom.themeBtn.addEventListener("click", () => {
     state.theme = state.theme === "light" ? "void" : "light";
     applyTheme(state.theme);
-    persistState();
+    saveState();
   });
 
   dom.todayBtn.addEventListener("click", () => {
@@ -145,8 +141,30 @@ function bindEvents() {
   });
 }
 
+function handleDobChange(event) {
+  const rawValue = event.target.value.trim();
+  const parsed = parseISODate(rawValue);
+  if (!parsed) {
+    state.dob = "";
+    selectedWeek = null;
+    saveState();
+    renderAll();
+    return;
+  }
+  state.dob = toISODate(parsed);
+  dom.dobInput.value = state.dob;
+  selectedWeek = getCurrentWeekIndex(parsed);
+  saveState();
+  renderAll();
+}
+
 function render() {
-  if (!state.dob) {
+  renderAll();
+}
+
+function renderAll() {
+  const dobDate = parseISODate(state.dob);
+  if (!dobDate) {
     dom.grid.innerHTML = "";
     dom.gridEmpty.hidden = false;
     updateInspector(null);
@@ -154,8 +172,8 @@ function render() {
   }
 
   dom.gridEmpty.hidden = true;
-  renderGrid();
-  const fallbackWeek = getCurrentWeekIndex();
+  renderGrid(dobDate);
+  const fallbackWeek = getCurrentWeekIndex(dobDate);
   if (selectedWeek === null && fallbackWeek !== null) {
     selectedWeek = fallbackWeek;
   }
@@ -164,11 +182,10 @@ function render() {
   }
 }
 
-function renderGrid() {
+function renderGrid(dobDate) {
   const totalWeeks = getTotalWeeks();
   const fragment = document.createDocumentFragment();
   const today = startOfDay(new Date());
-  const dobDate = parseDate(state.dob);
 
   dom.grid.innerHTML = "";
 
@@ -217,7 +234,8 @@ function selectWeek(index, options = {}) {
 }
 
 function updateInspector(weekIndex) {
-  if (weekIndex === null || !state.dob) {
+  const dobDate = parseISODate(state.dob);
+  if (weekIndex === null || !dobDate) {
     dom.inspectorStatus.textContent = "Select a week";
     dom.inspectorWeek.textContent = "—";
     dom.inspectorRange.textContent = "—";
@@ -227,7 +245,6 @@ function updateInspector(weekIndex) {
     return;
   }
 
-  const dobDate = parseDate(state.dob);
   const weekStart = new Date(dobDate.getTime() + weekIndex * MS_PER_WEEK);
   const weekEnd = new Date(weekStart.getTime() + MS_PER_DAY * 6);
   const today = startOfDay(new Date());
@@ -258,11 +275,10 @@ function updateInspector(weekIndex) {
   }
 }
 
-function getCurrentWeekIndex() {
-  if (!state.dob) {
+function getCurrentWeekIndex(dobDate = parseISODate(state.dob)) {
+  if (!dobDate) {
     return null;
   }
-  const dobDate = parseDate(state.dob);
   const today = startOfDay(new Date());
   const diff = today.getTime() - dobDate.getTime();
   const index = Math.floor(diff / MS_PER_WEEK);
@@ -290,9 +306,14 @@ function getOverlappingEvents(weekStart, weekEnd) {
   const weekStartTime = weekStart.getTime();
   const weekEndTime = weekEnd.getTime();
   return state.events.filter((event) => {
-    const eventStart = parseDate(event.start).getTime();
-    const eventEnd = parseDate(event.end).getTime();
-    return eventStart <= weekEndTime && eventEnd >= weekStartTime;
+    const eventStart = parseISODate(event.start);
+    const eventEnd = parseISODate(event.end);
+    if (!eventStart || !eventEnd) {
+      return false;
+    }
+    const eventStartTime = eventStart.getTime();
+    const eventEndTime = eventEnd.getTime();
+    return eventStartTime <= weekEndTime && eventEndTime >= weekStartTime;
   });
 }
 
@@ -328,7 +349,10 @@ function openModal() {
   }
   dom.eventForm.reset();
   if (selectedWeek !== null && state.dob) {
-    const dobDate = parseDate(state.dob);
+    const dobDate = parseISODate(state.dob);
+    if (!dobDate) {
+      return;
+    }
     const weekStart = new Date(dobDate.getTime() + selectedWeek * MS_PER_WEEK);
     const weekEnd = new Date(weekStart.getTime() + MS_PER_DAY * 6);
     dom.eventStart.value = toISODate(weekStart);
@@ -361,8 +385,12 @@ function saveEvent() {
     dom.modalError.textContent = "Start and end dates are required.";
     return;
   }
-  const startDate = parseDate(start);
-  const endDate = parseDate(end);
+  const startDate = parseISODate(start);
+  const endDate = parseISODate(end);
+  if (!startDate || !endDate) {
+    dom.modalError.textContent = "Enter valid start and end dates.";
+    return;
+  }
   if (endDate.getTime() < startDate.getTime()) {
     dom.modalError.textContent = "End date must be on or after start date.";
     return;
@@ -377,9 +405,8 @@ function saveEvent() {
   };
 
   state.events.push(newEvent);
-  persistState();
-  renderGrid();
-  updateInspector(selectedWeek);
+  saveState();
+  renderAll();
   closeModal();
 }
 
@@ -413,9 +440,9 @@ function handleImport(event) {
       dom.dobInput.value = state.dob;
       dom.expectancyInput.value = state.expectancyYears;
       applyTheme(state.theme);
-      persistState();
+      saveState();
       selectedWeek = null;
-      render();
+      renderAll();
     } catch (error) {
       alert("Unable to read file.");
     }
@@ -441,9 +468,10 @@ function loadState() {
 }
 
 function normalizeState(data) {
+  const dob = parseISODate(data.dob);
   return {
     version: 1,
-    dob: data.dob || "",
+    dob: dob ? toISODate(dob) : "",
     expectancyYears: data.expectancyYears || 90,
     theme: data.theme === "light" ? "light" : "void",
     events: Array.isArray(data.events) ? data.events : [],
@@ -463,7 +491,7 @@ function isValidState(data) {
   return true;
 }
 
-function persistState() {
+function saveState() {
   if (saveTimer) {
     window.clearTimeout(saveTimer);
   }
@@ -476,12 +504,36 @@ function applyTheme(theme) {
   document.documentElement.dataset.theme = theme;
 }
 
-function parseDate(value) {
-  return new Date(`${value}T00:00:00`);
+function parseISODate(iso) {
+  if (typeof iso !== "string") {
+    return null;
+  }
+  const match = iso.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) {
+    return null;
+  }
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  if (Number.isNaN(year) || Number.isNaN(month) || Number.isNaN(day)) {
+    return null;
+  }
+  const date = new Date(year, month - 1, day);
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return date;
 }
 
 function toISODate(date) {
-  return date.toISOString().slice(0, 10);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function startOfDay(date) {
