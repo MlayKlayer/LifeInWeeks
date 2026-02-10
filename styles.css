@@ -206,6 +206,10 @@ button.primary:hover {
   background: var(--surface-strong);
 }
 
+.grid-empty[hidden] {
+  display: none;
+}
+
 .inspector {
   width: 320px;
   background: var(--surface);
