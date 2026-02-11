@@ -33,14 +33,46 @@
     </header>
 
     <main class="main">
-      <section class="grid-panel" aria-label="Weeks grid">
-        <div id="grid" class="grid" role="grid" aria-label="Life weeks grid"></div>
-        <div id="grid-empty" class="grid-empty" hidden>
-          <p>Enter a valid DOB to generate the grid.</p>
+      <section class="stats-panel">
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-content">
+            <span class="stat-label">Life Progress</span>
+            <strong id="stat-progress" class="stat-value">—</strong>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-content">
+            <span class="stat-label">Weeks Lived</span>
+            <strong id="stat-lived" class="stat-value">—</strong>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-content">
+            <span class="stat-label">Weeks Remaining</span>
+            <strong id="stat-remaining" class="stat-value">—</strong>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🎂</div>
+          <div class="stat-content">
+            <span class="stat-label">Days Lived</span>
+            <strong id="stat-days" class="stat-value">—</strong>
+          </div>
         </div>
       </section>
 
-      <aside class="inspector" aria-live="polite">
+      <div class="grid-container">
+        <section class="grid-panel" aria-label="Weeks grid">
+          <div id="grid" class="grid" role="grid" aria-label="Life weeks grid"></div>
+          <div id="grid-empty" class="grid-empty" hidden>
+            <p>Enter a valid DOB to generate the grid.</p>
+          </div>
+        </section>
+
+        <aside class="inspector" aria-live="polite">
         <div class="inspector-header">
           <h2>Inspector</h2>
           <p id="inspector-status" class="inspector-status">Select a week</p>
@@ -67,7 +99,8 @@
             <div id="inspector-events" class="chip-row"></div>
           </div>
         </div>
-      </aside>
+        </aside>
+      </div>
     </main>
   </div>
 
