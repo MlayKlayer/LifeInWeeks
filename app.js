@@ -44,6 +44,10 @@ const dom = {
   modalError: document.getElementById("modal-error"),
   closeModalBtn: document.getElementById("close-modal-btn"),
   cancelModalBtn: document.getElementById("cancel-modal-btn"),
+  statProgress: document.getElementById("stat-progress"),
+  statLived: document.getElementById("stat-lived"),
+  statRemaining: document.getElementById("stat-remaining"),
+  statDays: document.getElementById("stat-days"),
 };
 
 let state = loadState();
@@ -62,7 +66,6 @@ function init() {
 
 function bindEvents() {
   dom.dobInput.addEventListener("change", handleDobChange);
-  dom.dobInput.addEventListener("input", handleDobChange);
 
   dom.expectancyInput.addEventListener("change", (event) => {
     const value = Number.parseInt(event.target.value, 10);
@@ -168,11 +171,13 @@ function renderAll() {
     dom.grid.innerHTML = "";
     dom.gridEmpty.hidden = false;
     updateInspector(null);
+    updateStats(null);
     return;
   }
 
   dom.gridEmpty.hidden = true;
   renderGrid(dobDate);
+  updateStats(dobDate);
   const fallbackWeek = getCurrentWeekIndex(dobDate);
   if (selectedWeek === null && fallbackWeek !== null) {
     selectedWeek = fallbackWeek;
@@ -231,6 +236,53 @@ function selectWeek(index, options = {}) {
     }
   }
   updateInspector(index);
+}
+
+function updateStats(dobDate) {
+  if (!dobDate) {
+    dom.statProgress.textContent = "—";
+    dom.statLived.textContent = "—";
+    dom.statRemaining.textContent = "—";
+    dom.statDays.textContent = "—";
+    return;
+  }
+
+  const today = startOfDay(new Date());
+  const totalWeeks = getTotalWeeks();
+  const currentWeek = getCurrentWeekIndex(dobDate);
+
+  if (currentWeek === null) {
+    dom.statProgress.textContent = "—";
+    dom.statLived.textContent = "—";
+    dom.statRemaining.textContent = "—";
+    dom.statDays.textContent = "—";
+    return;
+  }
+
+  const weeksLived = currentWeek + 1;
+  const weeksRemaining = Math.max(0, totalWeeks - weeksLived);
+  const progressPercent = ((weeksLived / totalWeeks) * 100).toFixed(1);
+  const daysLived = Math.floor((today.getTime() - dobDate.getTime()) / MS_PER_DAY);
+
+  dom.statProgress.textContent = `${progressPercent}%`;
+  dom.statLived.textContent = weeksLived.toLocaleString();
+  dom.statRemaining.textContent = weeksRemaining.toLocaleString();
+  dom.statDays.textContent = daysLived.toLocaleString();
+
+  // Add visual indicator with color based on progress
+  const progressCard = dom.statProgress.closest('.stat-card');
+  if (progressCard) {
+    const percent = parseFloat(progressPercent);
+    if (percent < 25) {
+      progressCard.style.setProperty('--progress-color', '#52b788');
+    } else if (percent < 50) {
+      progressCard.style.setProperty('--progress-color', '#6ea8ff');
+    } else if (percent < 75) {
+      progressCard.style.setProperty('--progress-color', '#f77f00');
+    } else {
+      progressCard.style.setProperty('--progress-color', '#ff6b6b');
+    }
+  }
 }
 
 function updateInspector(weekIndex) {
